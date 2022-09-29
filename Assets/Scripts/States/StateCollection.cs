@@ -25,6 +25,14 @@ public class StateCollection
         sL_states.Add(_newState);
     }
 
+    public void AddStates(State[] _newStates)
+    {
+        foreach(State _newState in _newStates)
+        {
+            AddState(_newState);
+        }
+    }
+
     public void RemoveState(State _toRemove)
     {
         if (sL_states.Contains(_toRemove))
@@ -59,7 +67,6 @@ public class StateCollection
             {
                 if (_state != rhState)
                     return false;
-
             }
         }
         return true;
@@ -72,5 +79,18 @@ public class StateCollection
     public override bool Equals(object obj)
     {
         return this == (StateCollection)obj;
+    }
+
+    public static int operator -(StateCollection _lhStates, StateCollection _rhStates)
+    {
+        int difference = 0;
+        foreach(State _state in _lhStates.GetStates())
+        {
+            State _rhState = _rhStates.GetState(_state.Name);
+            if(_rhState is object)
+                if (_state.GetState() != _rhState.GetState())
+                    difference++;
+        }
+        return difference;
     }
 }
