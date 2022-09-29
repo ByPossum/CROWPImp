@@ -28,8 +28,12 @@ public class Blackboard : MonoBehaviour
         State isAlive = new State("IsAlive", true);
         State isTired = new State("IsTired");
         State nearTarget = new State("NearTarget");
+        State canSeeGoal = canSee;
+        canSeeGoal.UpdateState(true);
+        State isAliveGoal = isAlive;
+        isAliveGoal.UpdateState(false);
         sc_worldState.AddStates(new State[] { canSee, hasPath, isAlive, isTired, nearTarget });
-        sc_goalState.AddStates(new State[] { })
+        sc_goalState.AddStates(new State[] { canSeeGoal, isAliveGoal });
         f_currentChange = Random.Range(0.1f, debug_stateChange);
         Action look = new Action("Look", null, new State[] { new State("CanSee", true), new State("IsAlive", true) }, new State[] { new State("HasPath") });
         Action run = new Action("Run", null, new State[] { new State("CanSee", true), new State("HasPath", true), new State("IsAlive", true), new State("IsTired", false) },
