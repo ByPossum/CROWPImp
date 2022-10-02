@@ -2,12 +2,13 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Xml.Serialization;
 
 public class Blackboard : MonoBehaviour
 {
     private StateCollection sc_worldState;
     private StateCollection sc_goalState;
-    private List<Action> aL_actionSet = new List<Action>();
+    private ActionSet as_actionSet;
     private float debug_stateChange = 20f;
     private float f_currentChange;
     private float f_currentTime;
@@ -22,26 +23,17 @@ public class Blackboard : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        sc_worldState = new StateCollection();
-        State canSee = new State("CanSee");
-        State hasPath = new State("HasPath");
-        State isAlive = new State("IsAlive", true);
-        State isTired = new State("IsTired");
-        State nearTarget = new State("NearTarget");
-        State canSeeGoal = canSee;
+        sc_worldState = GenericXMLReader.ReadXML<StateCollection>("/Goap/", "WorldState.xml");
+        sc_goalState = new StateCollection();
+        State canSeeGoal = new State(sc_worldState.GetState("CanSee"));
         canSeeGoal.UpdateState(true);
-        State isAliveGoal = isAlive;
+        State isAliveGoal = new State(sc_worldState.GetState("IsAlive"));
         isAliveGoal.UpdateState(false);
-        sc_worldState.AddStates(new State[] { canSee, hasPath, isAlive, isTired, nearTarget });
         sc_goalState.AddStates(new State[] { canSeeGoal, isAliveGoal });
         f_currentChange = Random.Range(0.1f, debug_stateChange);
-        Action look = new Action("Look", null, new State[] { new State("CanSee", true), new State("IsAlive", true) }, new State[] { new State("HasPath") });
-        Action run = new Action("Run", null, new State[] { new State("CanSee", true), new State("HasPath", true), new State("IsAlive", true), new State("IsTired", false) },
-            new State[] { new State("NearTarget", true) });
-        aL_actionSet.Add(look);
-        aL_actionSet.Add(run);
+        as_actionSet = GenericXMLReader.ReadXML<ActionSet>("/Goap/", "ActionSet.xml");
         tL_stateText = SetupText(0, sc_worldState.GetStates());
-        tL_actionText = SetupText(1, aL_actionSet);
+        tL_actionText = SetupText(1, as_actionSet.GetActionSet);
     }
 
     // Update is called once per frame
@@ -55,7 +47,7 @@ public class Blackboard : MonoBehaviour
             f_currentTime = 0f;
         }
         f_currentTime += Time.deltaTime;
-        foreach (Action _item in aL_actionSet)
+        foreach (Action _item in as_actionSet.GetActionSet)
             _item.CalculateHCost(sc_worldState);
         UpdateDebugText();
     }
@@ -82,13 +74,14 @@ public class Blackboard : MonoBehaviour
     private void UpdateDebugText()
     {
         List<State> states = sc_worldState.GetStates();
+        List<Action> _actionSet = as_actionSet.GetActionSet; 
         for(int i = 0; i < tL_stateText.Count; i++)
         {
             tL_stateText[i].text = $"{states[i].Name}: {states[i].CheckState()}";
         }
-        for (int j = 0; j < aL_actionSet.Count; j++)
+        for (int j = 0; j < _actionSet.Count; j++)
         {
-            tL_actionText[j].text = $"{aL_actionSet[j].ActionName}: {aL_actionSet[j].CheckActionEligibility(sc_worldState)} | Cost: {aL_actionSet[j].HCost}";
+            tL_actionText[j].text = $"{_actionSet[j].ActionName}: {_actionSet[j].CheckActionEligibility(sc_worldState)} | Cost: {_actionSet[j].HCost}";
         }
         t_timeText.text = $"Current Time: {f_currentTime.ToString()}";
         t_targetText.text = $"Target Time: {f_currentChange}";

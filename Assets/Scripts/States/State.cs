@@ -4,20 +4,27 @@ using UnityEngine;
 using System.Xml;
 using System.Xml.Serialization;
 
+[XmlRoot("State")]
 public class State
 {
-    protected string s_name;
-    protected bool b_state = false;
+    [XmlAttribute("Name")]
+    public string s_name;
+    [XmlAttribute("CurrentState")]
+    public bool b_state;
     public string Name { get { return s_name; } }
+    public virtual bool GetState { get { return b_state; } }
+
+    public State() { }
     public State(string _name, bool _initialState = false)
     {
         s_name = _name;
         b_state = _initialState;
     }
 
-    public virtual bool GetState()
+    public State(State _clone)
     {
-        return b_state;
+        s_name = _clone.s_name;
+        b_state = _clone.b_state;
     }
 
     public virtual bool CheckState()

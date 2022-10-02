@@ -1,10 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Xml;
+using System.Xml.Serialization;
 
+[XmlRoot("StateCollection")]
 public class StateCollection
 {
-    private List<State> sL_states = new List<State>();
+    [XmlArray("States")]
+    public List<State> sL_states = new List<State>();
 
     public StateCollection()
     {
@@ -88,7 +92,7 @@ public class StateCollection
         {
             State _rhState = _rhStates.GetState(_state.Name);
             if(_rhState is object)
-                if (_state.GetState() != _rhState.GetState())
+                if (_state.GetState != _rhState.GetState)
                     difference++;
         }
         return difference;

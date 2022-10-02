@@ -1,20 +1,26 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Xml.Serialization;
 
+[XmlRoot("Action")]
 public class Action
 {
-    private StateCollection sc_preCondition;
-    private StateCollection sc_postCondition;
-    private int i_HCost = 0;
-    private int i_FCost = 0;
-
-
-    private string s_actionName;
+    [XmlAttribute("ActionName")]
+    public string s_actionName;
+    [XmlElement("Precondition")]
+    public StateCollection sc_preCondition;
+    [XmlElement("PostCondition")]
+    public StateCollection sc_postCondition;
+    
+    private GoapAction ga_action;
+    private int i_hCost = 0;
+    private int i_gCost = 0;
     public string ActionName { get { return s_actionName; } }
-    public int HCost { get { return i_HCost; } }
-    public int FCost { get { return i_FCost; } }
-    public GoapAction ga_action;
+    public int HCost { get { return i_hCost; } }
+    public int FCost { get { return i_hCost + i_gCost; } }
+
+    public Action() { }
 
     public Action(string _actionName, GoapAction _action, State[] _pre, State[] _post)
     {
@@ -39,8 +45,8 @@ public class Action
 
     public int CalculateHCost(StateCollection _worldState)
     {
-        i_HCost = sc_postCondition - _worldState;
-        return i_HCost;
+        i_hCost = sc_postCondition - _worldState;
+        return i_hCost;
     }
 
 }
