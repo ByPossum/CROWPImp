@@ -16,9 +16,12 @@ public class Action
     private GoapAction ga_action;
     private int i_hCost = 0;
     private int i_gCost = 0;
+    private bool b_validAction = true;
     public string ActionName { get { return s_actionName; } }
     public int HCost { get { return i_hCost; } }
     public int FCost { get { return i_hCost + i_gCost; } }
+    public StateCollection PreCondition { get { return sc_preCondition; } }
+    public StateCollection PostCondition { get { return sc_postCondition; } }
 
     public Action() { }
 
@@ -43,12 +46,21 @@ public class Action
         return sc_preCondition == _worldState;
     }
 
-    public int CalculateHCost(StateCollection _worldState)
+    public void CalculateHCost(StateCollection _goalState)
     {
-        i_hCost = sc_postCondition - _worldState;
-        return i_hCost;
+
+        i_hCost = _goalState.GetStates().Count - (sc_postCondition - _goalState);
     }
 
+    public void CalculateGCost(StateCollection _previousState)
+    {
+        i_gCost = sc_preCondition - _previousState;
+    }
+
+    public bool CheckIfNodeIsTraversable(StateCollection _worldState)
+    {
+        return sc_preCondition == _worldState;
+    }
 }
 
 public delegate void GoapAction(GameObject _target);

@@ -15,6 +15,12 @@ public class StateCollection
 
     }
 
+    public StateCollection(StateCollection _copy)
+    {
+        foreach (State _state in _copy.GetStates())
+            sL_states.Add(new State(_state));
+    }
+
     /// <summary>
     /// Add a new state to the list of states. Must be unique!
     /// </summary>
@@ -59,6 +65,16 @@ public class StateCollection
     public List<State> GetStates()
     {
         return sL_states;
+    }
+
+    public void UpdateState(State _newState)
+    {
+        if (!(GetState(_newState.Name) is object))
+        {
+            Debug.LogError($"SE004: The state you're trying to update: {_newState.Name} does not exist in the current State Collection. \n Please Add the state to the collection first.");
+            return;
+        }
+        GetState(_newState.Name).UpdateState(_newState.GetState);
     }
 
     public static bool operator ==(StateCollection _lhStates, StateCollection _rhStates)

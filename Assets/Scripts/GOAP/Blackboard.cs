@@ -14,6 +14,7 @@ public class Blackboard : MonoBehaviour
     private float f_currentTime;
 
     [SerializeField] Canvas _can;
+    [SerializeField] Debugger bug_logger;
     [SerializeField] Text t_timeText;
     [SerializeField] Text t_targetText;
     [SerializeField] Text t_defaultText;
@@ -24,16 +25,12 @@ public class Blackboard : MonoBehaviour
     void Start()
     {
         sc_worldState = GenericXMLReader.ReadXML<StateCollection>("/Goap/", "WorldState.xml");
-        sc_goalState = new StateCollection();
-        State canSeeGoal = new State(sc_worldState.GetState("CanSee"));
-        canSeeGoal.UpdateState(true);
-        State isAliveGoal = new State(sc_worldState.GetState("IsAlive"));
-        isAliveGoal.UpdateState(false);
-        sc_goalState.AddStates(new State[] { canSeeGoal, isAliveGoal });
+        sc_goalState = GenericXMLReader.ReadXML<StateCollection>("/Goap/Agents/", "GoalState_AgentName.xml");
         f_currentChange = Random.Range(0.1f, debug_stateChange);
-        as_actionSet = GenericXMLReader.ReadXML<ActionSet>("/Goap/", "ActionSet.xml");
-        tL_stateText = SetupText(0, sc_worldState.GetStates());
-        tL_actionText = SetupText(1, as_actionSet.GetActionSet);
+        as_actionSet = GenericXMLReader.ReadXML<ActionSet>("/Goap/Actions/", "ActionSet.xml");
+        SetupText();
+        Planner planner = new Planner(bug_logger);
+        planner.Plan(as_actionSet, sc_worldState, sc_goalState);
     }
 
     // Update is called once per frame
@@ -47,43 +44,43 @@ public class Blackboard : MonoBehaviour
             f_currentTime = 0f;
         }
         f_currentTime += Time.deltaTime;
-        foreach (Action _item in as_actionSet.GetActionSet)
-            _item.CalculateHCost(sc_worldState);
         UpdateDebugText();
     }
 
-    private List<Text> SetupText<T>(int _xoffSet, List<T> _col)
+    private void SetupText()
     {
-        List<Text> newText = new List<Text>();
-        foreach(T obj in _col)
-        {
-            Text _text = Instantiate(t_defaultText);
-            _text.gameObject.SetActive(true);
-            newText.Add(_text);
-            Vector3 pos = _text.transform.position;
-            pos.x = t_defaultText.transform.position.x + (t_defaultText.rectTransform.rect.width * _xoffSet);
-            pos.y += _text.rectTransform.rect.height * newText.Count;
-            _text.transform.position = pos;
-            _text.transform.parent = _can.transform;
+        bug_logger.AddTextCategory("Time");
+        bug_logger.AddTextCategory("World");
+        bug_logger.AddTextCategory("Actions");
 
-        }
-        return newText;
+        bug_logger.AddText("Time", $"Current time: {f_currentTime}", $"Target time: {f_currentChange}");
+
+        foreach (State _state in sc_worldState.GetStates())
+            bug_logger.AddText("World", $"{_state.Name}: {_state.CheckState()} ");
+        foreach (Action _action in as_actionSet.GetActionSet)
+            bug_logger.AddText("Actions", $"{_action.ActionName}: {_action.CheckActionEligibility(sc_worldState)}");
     }
-
 
     private void UpdateDebugText()
     {
-        List<State> states = sc_worldState.GetStates();
-        List<Action> _actionSet = as_actionSet.GetActionSet; 
-        for(int i = 0; i < tL_stateText.Count; i++)
+        bug_logger.UpdateText("Time", $"Current time: {f_currentTime.ToString("n2")}", $"Target time: {f_currentChange.ToString("n2")}");
+        string[] _worldStates = new string[sc_worldState.GetStates().Count];
+        string[] _actions = new string[as_actionSet.GetActionSet.Count];
+        // TODO: Stop being lazy and clean this up a bit.
+        int _lziter = 0;
+        foreach (State _state in sc_worldState.GetStates())
         {
-            tL_stateText[i].text = $"{states[i].Name}: {states[i].CheckState()}";
+            _worldStates[_lziter] = $"{_state.Name}: {_state.CheckState()}";
+            _lziter++;
         }
-        for (int j = 0; j < _actionSet.Count; j++)
+        _lziter = 0;
+        foreach (Action _action in as_actionSet.GetActionSet)
         {
-            tL_actionText[j].text = $"{_actionSet[j].ActionName}: {_actionSet[j].CheckActionEligibility(sc_worldState)} | Cost: {_actionSet[j].HCost}";
+
+            _actions[_lziter] = $"{_action.ActionName}: {_action.CheckActionEligibility(sc_worldState)}";
+            _lziter++;
         }
-        t_timeText.text = $"Current Time: {f_currentTime.ToString()}";
-        t_targetText.text = $"Target Time: {f_currentChange}";
+        bug_logger.UpdateText("World", _worldStates);
+        bug_logger.UpdateText("Actions", _actions);
     }
 }
