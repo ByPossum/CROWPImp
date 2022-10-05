@@ -58,7 +58,7 @@ public class StateCollection
         foreach (State _state in sL_states)
             if (_state.Name == _name)
                 return _state;
-        Debug.LogError("SE003: The state you're trying to get is not in the list.");
+        Debug.LogError($"SE003: The state you're trying to get {_name} is not in the list.");
         return null;
     }
 

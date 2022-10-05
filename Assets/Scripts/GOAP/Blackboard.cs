@@ -9,6 +9,8 @@ public class Blackboard : MonoBehaviour
     private StateCollection sc_worldState;
     private StateCollection sc_goalState;
     private ActionSet as_actionSet;
+    private ActionSet as_plannedSet;
+    private Planner planner;
     private float debug_stateChange = 20f;
     private float f_currentChange;
     private float f_currentTime;
@@ -29,8 +31,7 @@ public class Blackboard : MonoBehaviour
         f_currentChange = Random.Range(0.1f, debug_stateChange);
         as_actionSet = GenericXMLReader.ReadXML<ActionSet>("/Goap/Actions/", "ActionSet.xml");
         SetupText();
-        Planner planner = new Planner(bug_logger);
-        planner.Plan(as_actionSet, sc_worldState, sc_goalState);
+        planner = new Planner(bug_logger);
     }
 
     // Update is called once per frame
@@ -44,6 +45,8 @@ public class Blackboard : MonoBehaviour
             f_currentTime = 0f;
         }
         f_currentTime += Time.deltaTime;
+        if (!planner.Planning && as_plannedSet == null)
+            planner.Plan(as_actionSet, sc_worldState, sc_goalState);
         UpdateDebugText();
     }
 
@@ -51,6 +54,7 @@ public class Blackboard : MonoBehaviour
     {
         bug_logger.AddTextCategory("Time");
         bug_logger.AddTextCategory("World");
+        bug_logger.AddTextCategory("Goal");
         bug_logger.AddTextCategory("Actions");
 
         bug_logger.AddText("Time", $"Current time: {f_currentTime}", $"Target time: {f_currentChange}");
@@ -59,6 +63,8 @@ public class Blackboard : MonoBehaviour
             bug_logger.AddText("World", $"{_state.Name}: {_state.CheckState()} ");
         foreach (Action _action in as_actionSet.GetActionSet)
             bug_logger.AddText("Actions", $"{_action.ActionName}: {_action.CheckActionEligibility(sc_worldState)}");
+        foreach (State _state in sc_goalState.GetStates())
+            bug_logger.AddText("Goal", $"{_state.Name}: {_state.CheckState()}");
     }
 
     private void UpdateDebugText()
@@ -66,21 +72,17 @@ public class Blackboard : MonoBehaviour
         bug_logger.UpdateText("Time", $"Current time: {f_currentTime.ToString("n2")}", $"Target time: {f_currentChange.ToString("n2")}");
         string[] _worldStates = new string[sc_worldState.GetStates().Count];
         string[] _actions = new string[as_actionSet.GetActionSet.Count];
-        // TODO: Stop being lazy and clean this up a bit.
-        int _lziter = 0;
-        foreach (State _state in sc_worldState.GetStates())
-        {
-            _worldStates[_lziter] = $"{_state.Name}: {_state.CheckState()}";
-            _lziter++;
-        }
-        _lziter = 0;
-        foreach (Action _action in as_actionSet.GetActionSet)
-        {
-
-            _actions[_lziter] = $"{_action.ActionName}: {_action.CheckActionEligibility(sc_worldState)}";
-            _lziter++;
-        }
+        string[] _goals = new string[sc_goalState.GetStates().Count];
+        
+        for(int i = 0; i < sc_worldState.GetStates().Count; i++)
+            _worldStates[i] = $"{sc_worldState.GetStates()[i].Name}: {sc_worldState.GetStates()[i].CheckState()}";
+        for(int i = 0; i < as_actionSet.GetActionSet.Count; i++)
+            _actions[i] = $"{as_actionSet.GetActionSet[i].ActionName}: {as_actionSet.GetActionSet[i].CheckActionEligibility(sc_worldState)}";
+        for(int i = 0; i < sc_goalState.GetStates().Count; i++)
+            _goals[i] = $"{sc_goalState.GetStates()[i].Name}: {sc_goalState.GetStates()[i].CheckState()}";
+        
         bug_logger.UpdateText("World", _worldStates);
         bug_logger.UpdateText("Actions", _actions);
+        bug_logger.UpdateText("Goal", _goals);
     }
 }

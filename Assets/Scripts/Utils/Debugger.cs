@@ -36,7 +36,14 @@ public class Debugger : MonoBehaviour
         }
 
         foreach(string _t in _text)
-            tD_textLists[_key].Add(CreateNewText(_key, _t));
+        {
+            bool add = true;
+            foreach (Text _cloneCheck in tD_textLists[_key])
+                if (_cloneCheck.text == _t)
+                    add = false;
+            if(add)
+                tD_textLists[_key].Add(CreateNewText(_key, _t));
+        }
     }
 
     public void UpdateText(string _key, params string[] _text)
