@@ -46,10 +46,10 @@ public class Action
         return sc_preCondition == _worldState;
     }
 
-    public void CalculateHCost(StateCollection _goalState)
+    public void CalculateHCost(StateCollection _goalState, StateCollection _currentState)
     {
 
-        i_hCost = _goalState.GetStates().Count - (sc_postCondition - _goalState);
+        i_hCost = (_goalState - _currentState) - (sc_postCondition + _goalState);
     }
 
     public void CalculateGCost(StateCollection _previousState)

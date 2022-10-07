@@ -58,7 +58,7 @@ public class StateCollection
         foreach (State _state in sL_states)
             if (_state.Name == _name)
                 return _state;
-        Debug.LogError($"SE003: The state you're trying to get {_name} is not in the list.");
+        //Debug.LogError($"SE003: The state you're trying to get {_name} is not in the list.");
         return null;
     }
 
@@ -101,6 +101,12 @@ public class StateCollection
         return this == (StateCollection)obj;
     }
 
+    /// <summary>
+    /// Counts inequality between states
+    /// </summary>
+    /// <param name="_lhStates">Left hand State</param>
+    /// <param name="_rhStates">Right hand State</param>
+    /// <returns>How many states are different between the collections.</returns>
     public static int operator -(StateCollection _lhStates, StateCollection _rhStates)
     {
         int difference = 0;
@@ -108,9 +114,29 @@ public class StateCollection
         {
             State _rhState = _rhStates.GetState(_state.Name);
             if(_rhState is object)
-                if (_state.GetState != _rhState.GetState)
+                if (_state != _rhState)
                     difference++;
         }
         return difference;
     }
+
+    /// <summary>
+    /// Counts equality between states
+    /// </summary>
+    /// <param name="_lhStates">Left hand State</param>
+    /// <param name="_rhStates">Right hand State</param>
+    /// <returns>How many states are the same between the collections</returns>
+    public static int operator +(StateCollection _lhStates, StateCollection _rhStates)
+    {
+        int difference = 0;
+        foreach(State _state in _lhStates.GetStates())
+        {
+            State _rhState = _rhStates.GetState(_state.Name);
+            if (_rhState is object)
+                if (_state == _rhState)
+                    difference++;
+        }
+        return difference;
+    }
+
 }

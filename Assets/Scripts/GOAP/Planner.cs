@@ -20,14 +20,20 @@ public class Planner
         // Deep copy the states
         StateCollection world = new StateCollection(_worldState);
         ActionSet _openSet = new ActionSet(_initialSet.GetActionSet.ToArray());
+
+        // Check if the goal is already satisfied
+        if(_targetState == world)
+            return null;
+
         // Set to planning
         b_planning = true;
 
+        bug_logger.UpdateText("Planner", "Status: Initializing Actions");
         // Initialize action costs
         foreach (Action _action in _openSet.GetActionSet)
         {
             _action.CalculateGCost(world);
-            _action.CalculateHCost(_targetState);
+            _action.CalculateHCost(_targetState, world);
         }
 
         // Get our first node
@@ -52,6 +58,7 @@ public class Planner
             {
                 b_planning = false;
                 _closedSet = null;
+                bug_logger.UpdateText("Planner", "Status: Run out of Actions");
                 break;
             }
             // Collect potential other actions
@@ -66,13 +73,14 @@ public class Planner
             {
                 b_planning = false;
                 _closedSet = null;
+                bug_logger.UpdateText("Planner", "Status: No valid neighbours");
                 break;
             }
             // Choose next action to take
             int nextCost = 100;
             foreach(Action _nextAction in _currentNeighbours.GetActionSet)
             {
-                _nextAction.CalculateHCost(_targetState);
+                _nextAction.CalculateHCost(_targetState, world);
                 _nextAction.CalculateGCost(world);
                 if(_nextAction.FCost < nextCost)
                 {
@@ -84,12 +92,20 @@ public class Planner
             _openSet.RemoveAction(_currentNode);
 
         }
-        bug_logger.UpdateText("Planner", "Status: Complete");
+        b_planning = false;
         if (_closedSet != null)
+        {
+            bug_logger.UpdateText("Planner", "Status: Complete");
             foreach (Action _a in _closedSet.GetActionSet)
                 bug_logger.AddText("Planner", _a.ActionName);
+            bug_logger.AddText("Goal Satisfied:");
+            foreach (State _goal in _targetState.GetStates())
+                bug_logger.AddText($"{_goal.Name}: {_goal.CheckState()}");
+        }
         else
+        {
             bug_logger.AddText("Planner", "No valid plan");
+        }
         return _closedSet;
     }
 }

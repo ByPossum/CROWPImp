@@ -1,18 +1,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Xml.Serialization;
 
-public class GoapAgent : MonoBehaviour
+[XmlRoot("Agent")]
+public class GoapAgent
 {
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    [XmlAttribute("Name")]
+    public string s_name;
+    [XmlElement("Actions")]
+    public ActionSet as_actions = new ActionSet();
+    [XmlElement("Goals")]
+    public List<StateCollection> sL_goals = new List<StateCollection>();
 
-    // Update is called once per frame
-    void Update()
+    public GoapAgent() { }
+    public GoapAgent(string _name, ActionSet _actions, params StateCollection[] _goals)
     {
-        
+        s_name = _name;
+        as_actions = _actions;
+        for (int i = 0; i < _goals.Length; i++)
+            sL_goals.Add(_goals[i]);
     }
 }

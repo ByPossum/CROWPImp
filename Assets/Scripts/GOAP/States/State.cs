@@ -47,8 +47,18 @@ public class State
         return _lhState.b_state == _rhState.b_state;
     }
 
+    public static bool operator ==(State _lhState, bool _rhState)
+    {
+        return _lhState.b_state == _rhState;
+    }
+
     public static bool operator !=(State _lhState, State _rhState)
     {
         return _lhState.b_state != _rhState.b_state;
+    }
+
+    public static bool operator !=(State _lhState, bool _rhState)
+    {
+        return _lhState.b_state != _rhState;
     }
 }
